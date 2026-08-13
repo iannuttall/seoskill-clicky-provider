@@ -1,0 +1,58 @@
+name: Bootstrap npm
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.11.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - name: Use current npm
+        run: npm install --global npm@11.10.0
+      - name: Require the provider SDK release
+        run: npm view "seo@^0.2.34" version
+      - name: Require a new package
+        run: |
+          if npm view "@seoskill/clicky-provider" name >/dev/null 2>&1; then
+            echo "@seoskill/clicky-provider already exists. Use trusted publishing." >&2
+            exit 1
+          fi
+      - run: pnpm install --no-frozen-lockfile
+      - run: pnpm build
+      - run: pnpm typecheck
+      - run: pnpm test
+      - run: pnpm lint
+      - run: pnpm package:check
+      - run: pnpm pack --dry-run
+      - run: pnpm audit --audit-level high
+      - name: Publish first npm version
+        run: npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN_BOOTSTRAP }}
+      - name: Tag first version
+        run: |
+          version="$(node --print "require('./package.json').version")"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "v${version}" --message "Release @seoskill/clicky-provider@${version}"
+          git push origin "v${version}"
