@@ -1,8 +1,49 @@
-# Clicky provider for `seo`
+<h1 align="center">Clicky provider for SEO Skill</h1>
 
-Add Clicky landing page visits to SEO reports and run bounded Clicky analytics reports from the `seo` command.
+<p align="center">
+  Add Clicky landing-page visits to SEO reports and run Clicky analytics reports from the <code>seo</code> command.
+</p>
+
+<p align="center">
+  <a href="#install-the-provider">Install</a>
+  ·
+  <a href="https://seoskill.dev/docs/clicky">Documentation</a>
+  ·
+  <a href="https://www.npmjs.com/package/@seoskill/clicky-provider">npm</a>
+  ·
+  <a href="https://github.com/iannuttall/seo">Main project</a>
+  ·
+  <a href="https://clicky.com/help/api">Clicky API</a>
+  ·
+  <a href="https://github.com/iannuttall/seoskill-clicky-provider/issues">Questions</a>
+  ·
+  <a href="SECURITY.md">Security</a>
+  ·
+  <a href="LICENSE">License</a>
+</p>
+
+<p align="center">
+  <a href="https://github.com/iannuttall/seoskill-clicky-provider/actions/workflows/ci.yml"><img alt="Checks" src="https://img.shields.io/github/actions/workflow/status/iannuttall/seoskill-clicky-provider/ci.yml?branch=main&label=checks&style=flat-square"></a>
+  <a href="https://www.npmjs.com/package/@seoskill/clicky-provider"><img alt="npm version" src="https://img.shields.io/npm/v/@seoskill/clicky-provider?style=flat-square"></a>
+  <img alt="Node 22 or newer" src="https://img.shields.io/badge/Node-22%2B-339933?style=flat-square">
+  <img alt="TypeScript" src="https://img.shields.io/badge/TypeScript-ready-3178c6?style=flat-square">
+  <a href="LICENSE"><img alt="Apache 2.0 license" src="https://img.shields.io/badge/license-Apache--2.0-lightgrey?style=flat-square"></a>
+</p>
 
 The package keeps the Clicky adapter outside the main `seo` package. The main package still owns installation, credentials, network limits, caching, project profiles, report logic, and evidence labels.
+
+## What this package adds
+
+| Part | What it does |
+| --- | --- |
+| Landing-page visits | Maps Clicky entrance-page visitors to the shared traffic evidence used by compatible reports. |
+| Clicky reports | Keeps `seo analytics clicky report` available for Clicky-native report types. |
+| Provider action | Lets agents inspect and run the Clicky report action through the CLI or MCP server. |
+| Local connection | Stores the site ID as account data and keeps the sitekey in the managed secret store. |
+
+This is a first-party provider package maintained by the same team as
+[`seo`](https://github.com/iannuttall/seo). It uses the public provider SDK, so
+its adapter, tests, and releases stay separate from the main package.
 
 ## Requirements
 
