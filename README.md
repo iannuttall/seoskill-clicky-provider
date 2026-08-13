@@ -19,16 +19,16 @@ npm install --global seo
 
 ## Install the provider
 
-Install this package through the reviewed provider list. The command shows the package, publisher, repository, and local permission warning before it installs code.
+Install this package by npm name. The command shows the exact version, publisher, repository, integrity, and local permission warning before it installs code.
 
 ```sh
-seo providers install clicky
+seo providers install @seoskill/clicky-provider
 ```
 
 For JSON or CI use, approve the exact package without a prompt:
 
 ```sh
-seo providers install clicky --yes --json
+seo providers install @seoskill/clicky-provider --yes --json
 ```
 
 The provider loader only runs packages recorded in the local provider registry. It does not scan project or global `node_modules` directories.
@@ -152,7 +152,7 @@ seo providers remove clicky
 
 ## Agent use
 
-Agents should run `seo providers describe clicky --json` before using a provider action. The response includes the input and output JSON schemas. The main package validates both sides of the call and returns structured provider errors without requiring an extra public command or MCP tool.
+Agents should run `seo providers describe clicky --json` or `seo_describe_provider` before using a provider action. The response includes the input and output JSON schemas. Run the action with `seo providers run` or `seo_run_provider`. The main package validates both sides of the call and returns structured provider errors.
 
 Use the shared landing page capability through normal reports when you need report evidence. Use the `report` action only when you need a Clicky native report that is not part of a shared report shape.
 
