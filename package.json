@@ -1,0 +1,70 @@
+{
+  "name": "@seoskill/clicky-provider",
+  "version": "0.1.0",
+  "description": "Clicky traffic analytics provider for the seo package.",
+  "author": "Ian Nuttall",
+  "type": "module",
+  "license": "Apache-2.0",
+  "homepage": "https://seoskill.dev/docs/clicky",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iannuttall/seoskill-clicky-provider.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iannuttall/seoskill-clicky-provider/issues"
+  },
+  "keywords": [
+    "seo",
+    "clicky",
+    "analytics",
+    "traffic",
+    "provider"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/index.d.ts",
+    "dist/index.d.ts.map",
+    "dist/index.js",
+    "dist/index.js.map"
+  ],
+  "seo": {
+    "apiVersion": 1,
+    "providers": [
+      "./dist/index.js"
+    ]
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "packageManager": "pnpm@11.11.0",
+  "engines": {
+    "node": ">=22.19.0"
+  },
+  "scripts": {
+    "build": "tsdown --config tsdown.config.ts",
+    "clean": "node -e \"require('node:fs').rmSync('dist', { force: true, recursive: true })\"",
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "package:check": "node scripts/package.test.mjs",
+    "prepack": "npm run build && npm test && npm run package:check",
+    "test": "node --test dist/index.test.js",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.20.1",
+    "seo": "^0.2.34",
+    "tsdown": "^0.22.12",
+    "typescript": "^6.0.3"
+  },
+  "peerDependencies": {
+    "seo": ">=0.2.34"
+  }
+}

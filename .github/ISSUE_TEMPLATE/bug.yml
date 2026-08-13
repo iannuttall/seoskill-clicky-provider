@@ -1,0 +1,28 @@
+name: Bug report
+description: Report a reproducible Clicky provider problem.
+title: "fix: "
+body:
+  - type: markdown
+    attributes:
+      value: Do not include sitekeys, analytics data, private URLs, or client data.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What happened, and what did you expect?
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: Give the smallest command and fake fixture that reproduce the problem.
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Include Node.js, seo, and provider package versions.
+    validations:
+      required: true

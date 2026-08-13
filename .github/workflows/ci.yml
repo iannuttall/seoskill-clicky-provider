@@ -1,0 +1,54 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.11.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Check provider SDK release
+        id: sdk
+        run: |
+          if npm view "seo@^0.2.34" version >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm install --no-frozen-lockfile
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm build
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm typecheck
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm test
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm lint
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm package:check
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm pack --dry-run
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm audit --audit-level high
+      - name: Report provider SDK wait
+        if: steps.sdk.outputs.available == 'false'
+        run: echo "Clean registry checks will start after seo 0.2.34 publishes the provider SDK."

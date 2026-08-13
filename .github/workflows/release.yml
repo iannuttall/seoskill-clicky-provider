@@ -1,0 +1,136 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - ".github/workflows/release.yml"
+  workflow_dispatch:
+    inputs:
+      dryRun:
+        description: "Run npm publish without publishing"
+        required: true
+        default: "true"
+        type: choice
+        options:
+          - "true"
+          - "false"
+
+permissions:
+  contents: write
+  id-token: write
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  npm:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v3
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_ENABLE_COMMENTS: false
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 11.11.0
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: "https://registry.npmjs.org"
+          package-manager-cache: false
+      - name: Use an npm CLI with trusted publishing support
+        run: npm install --global npm@11.10.0
+      - name: Check provider SDK release
+        id: sdk
+        run: |
+          if npm view "seo@^0.2.34" version >/dev/null 2>&1; then
+            echo "available=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "available=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Check release version
+        id: release
+        shell: bash
+        run: |
+          package="@seoskill/clicky-provider"
+          version="$(node --print "require('./package.json').version")"
+          tag="v${version}"
+
+          if npm view "${package}" name >/dev/null 2>&1; then
+            bootstrapped="true"
+          else
+            bootstrapped="false"
+          fi
+
+          if npm view "${package}@${version}" version >/dev/null 2>&1; then
+            published="true"
+          else
+            published="false"
+          fi
+
+          if git rev-parse --verify --quiet "refs/tags/${tag}" >/dev/null; then
+            tagged="true"
+          else
+            tagged="false"
+          fi
+
+          if [[ "${published}" == "false" && "${tagged}" == "true" ]]; then
+            echo "${tag} exists, but ${package}@${version} is not published." >&2
+            exit 1
+          fi
+
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tag=${tag}" >> "$GITHUB_OUTPUT"
+          echo "bootstrapped=${bootstrapped}" >> "$GITHUB_OUTPUT"
+          echo "published=${published}" >> "$GITHUB_OUTPUT"
+          echo "tagged=${tagged}" >> "$GITHUB_OUTPUT"
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm install --no-frozen-lockfile
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm build
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm typecheck
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm test
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm lint
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm package:check
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm pack --dry-run
+      - if: steps.sdk.outputs.available == 'true'
+        run: pnpm audit --audit-level high
+      - name: Publish dry run
+        if: steps.sdk.outputs.available == 'true' && github.event_name == 'workflow_dispatch' && inputs.dryRun == 'true'
+        run: npm publish --dry-run
+      - name: Publish to npm
+        if: steps.sdk.outputs.available == 'true' && steps.release.outputs.bootstrapped == 'true' && steps.release.outputs.published == 'false' && (github.event_name == 'push' || inputs.dryRun == 'false')
+        run: npm publish --access public --provenance
+      - name: Tag published version
+        if: steps.sdk.outputs.available == 'true' && steps.release.outputs.bootstrapped == 'true' && steps.release.outputs.published == 'false' && (github.event_name == 'push' || inputs.dryRun == 'false')
+        env:
+          RELEASE_TAG: ${{ steps.release.outputs.tag }}
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag --annotate "$RELEASE_TAG" --message "Release @seoskill/clicky-provider@$RELEASE_VERSION"
+          git push origin "$RELEASE_TAG"
+      - name: Report required first publish
+        if: steps.sdk.outputs.available == 'true' && steps.release.outputs.bootstrapped == 'false'
+        run: echo "Publish @seoskill/clicky-provider once with a scoped npm key, then configure its trusted publisher."
+      - name: Report provider SDK wait
+        if: steps.sdk.outputs.available == 'false'
+        run: echo "Publishing will start after seo 0.2.34 publishes the provider SDK."
+      - name: Report existing release
+        if: steps.release.outputs.published == 'true'
+        env:
+          RELEASE_VERSION: ${{ steps.release.outputs.version }}
+        run: echo "@seoskill/clicky-provider@$RELEASE_VERSION is already published; nothing to release."

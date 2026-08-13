@@ -1,0 +1,12 @@
+import { defineConfig } from 'tsdown'
+
+export default defineConfig({
+  entry: ['src/index.ts', 'src/index.test.ts'],
+  format: ['esm'],
+  platform: 'node',
+  target: 'node22',
+  fixedExtension: false,
+  dts: true,
+  sourcemap: true,
+  clean: true,
+})
