@@ -108,7 +108,7 @@ jobs:
       - if: steps.sdk.outputs.available == 'true'
         run: pnpm audit --audit-level high
       - name: Publish dry run
-        if: steps.sdk.outputs.available == 'true' && github.event_name == 'workflow_dispatch' && inputs.dryRun == 'true'
+        if: steps.sdk.outputs.available == 'true' && steps.release.outputs.published == 'false' && github.event_name == 'workflow_dispatch' && inputs.dryRun == 'true'
         run: npm publish --dry-run
       - name: Publish to npm
         if: steps.sdk.outputs.available == 'true' && steps.release.outputs.bootstrapped == 'true' && steps.release.outputs.published == 'false' && (github.event_name == 'push' || inputs.dryRun == 'false')
